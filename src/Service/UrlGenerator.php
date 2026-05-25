@@ -47,6 +47,10 @@ class UrlGenerator
             ? 'https'
             : 'http';
 
+        // Strip default port.
+        $defaultPort = $scheme === 'https' ? '443' : '80';
+        $host = preg_replace('/^(.+):' . $defaultPort . '$/', '$1', $host);
+
         return $scheme . '://' . $host . $path;
     }
 
