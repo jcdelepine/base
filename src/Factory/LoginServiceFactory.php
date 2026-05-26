@@ -19,6 +19,8 @@ use Exception;
 use Horde\Core\Config\ConfigLoader;
 use Horde\Core\Service\OAuthProviderConfigRepository;
 use Horde\Core\Service\PrefsService;
+use Horde\Core\Service\OidcPreLogoutHandler;
+use Horde\Core\Session\HordeSession;
 use Horde\Core\Session\SessionAccess;
 use Horde\Core\Session\SessionConfig;
 use Horde\Core\Session\SessionLifecycle;
@@ -71,6 +73,20 @@ class LoginServiceFactory
         // ConfigLoader is unavailable (test fixtures, partial DI setups).
         $conf = $this->resolveConf($injector);
 
+        // Register OidcPreLogoutHandler whenever OAuth/OIDC providers are
+        // configured, independently of the Horde auth driver — a user may
+        // authenticate via LDAP/SQL/etc. while still holding OAuth tokens
+        // (e.g. for XOAUTH2 IMAP access) that should be revoked/SLO'd on
+        // logout.
+        $preLogoutHandlers = [];
+        try {
+            if ($providerConfig->listEnabled() !== []) {
+                $preLogoutHandlers[] = $injector->getInstance(OidcPreLogoutHandler::class);
+            }
+        } catch (Exception $e) {
+            $logger->warning('Could not resolve OidcPreLogoutHandler: ' . $e->getMessage());
+        }
+
         return new LoginService(
             $registry,
             $logger,
@@ -86,6 +102,7 @@ class LoginServiceFactory
             $notification,
             $prefsService,
             $conf,
+            $preLogoutHandlers,
         );
     }
 

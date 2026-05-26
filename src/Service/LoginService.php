@@ -27,6 +27,7 @@ use Horde\Core\Assets\ResponsiveAssets;
 use Horde\Core\Config\RegistryState;
 use Horde\Core\Service\OAuthProviderConfigRepository;
 use Horde\Core\Service\PrefsService;
+use Horde\Core\Service\PreLogoutHandlerInterface;
 use Horde\Core\Session\HordeSession;
 use Horde\Core\Session\SessionAccess;
 use Horde\Exception\HordeThrowable;
@@ -75,6 +76,7 @@ class LoginService
         private readonly Horde_Notification_Handler $notification,
         private readonly PrefsService $prefsService,
         private readonly array $conf,
+        private readonly array $preLogoutHandlers = [],
     ) {}
 
     /**
