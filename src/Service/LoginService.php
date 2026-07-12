@@ -156,6 +156,9 @@ class LoginService
             $passwordResetLink = $this->renderPasswordResetLink($webroot);
         }
 
+        // Show password login form?
+        $showPasswordLogin = $this->conf['auth']['show_password_login'] ?? true;
+
         // Alternate login redirect
         $alternateLoginUrl = null;
         if (!empty($this->conf['auth']['alternate_login'])) {
@@ -185,6 +188,7 @@ class LoginService
             languageSelector: $languageSelector,
             modeSelector: $modeSelector,
             passwordResetLink: $passwordResetLink,
+            showPasswordLogin: $showPasswordLogin,
             errorHtml: $errorHtml,
             jsCode: $jsCode,
             jsFiles: $jsFiles,
@@ -480,7 +484,7 @@ class LoginService
 
         // Default redirect to login page
         $webroot = $this->registry->get('webroot', 'horde');
-        $redirect = $webroot . '/auth/login?logout_reason=logout';
+        $redirect = $webroot . '/login.php?logout_reason=logout';
 
         if (!empty($request->redirectUrl)) {
             $validated = $this->redirectValidator->validateRedirectUrl($request->redirectUrl);
