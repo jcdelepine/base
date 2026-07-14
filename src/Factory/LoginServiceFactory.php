@@ -70,16 +70,18 @@ class LoginServiceFactory
         // ConfigLoader is unavailable (test fixtures, partial DI setups).
         $conf = $this->resolveConf($injector);
 
-        // Collect pre-logout handlers. Handlers are registered conditionally
-        // based on the configured auth driver. Additional handlers can be
-        // added here as new auth drivers are introduced.
+        // Register OidcPreLogoutHandler whenever OAuth/OIDC providers are
+        // configured, independently of the Horde auth driver — a user may
+        // authenticate via LDAP/SQL/etc. while still holding OAuth tokens
+        // (e.g. for XOAUTH2 IMAP access) that should be revoked/SLO'd on
+        // logout.
         $preLogoutHandlers = [];
-        if (strcasecmp($conf['auth']['driver'] ?? '', 'oidc') === 0) {
-            try {
+        try {
+            if ($providerConfig->listEnabled() !== []) {
                 $preLogoutHandlers[] = $injector->getInstance(OidcPreLogoutHandler::class);
-            } catch (Exception $e) {
-                $logger->warning('Could not resolve OidcPreLogoutHandler: ' . $e->getMessage());
             }
+        } catch (Exception $e) {
+            $logger->warning('Could not resolve OidcPreLogoutHandler: ' . $e->getMessage());
         }
 
         return new LoginService(
