@@ -41,6 +41,7 @@ use Throwable;
  */
 class HealthCheckService
 {
+
     public function __construct(
         private Injector $injector,
         private ?HordeConfig $config = null
